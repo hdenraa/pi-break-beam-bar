@@ -41,6 +41,7 @@ def break_beam_callback(channel):
     
     
 def settarget(target,d):
+    global p
     if target == 1:
         p0=(0,0)
         p1=(7,7)
@@ -72,8 +73,8 @@ def settarget(target,d):
     
     print("target:"+str(target))
 
-    if p is not None:
-        p.terminate()
+    #if p is not None:
+    #    p.terminate()
             
  
             
@@ -89,5 +90,7 @@ while  time.time()-starttime<60:
    p.start() 
    p.join()
 
-message = input("Press enter to quit\n\n")
+for pin in BEAM_PINS:
+    GPIO.remove_event_detect(pin)
+
 GPIO.cleanup()
