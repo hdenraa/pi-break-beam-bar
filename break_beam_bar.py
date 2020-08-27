@@ -7,6 +7,7 @@ from luma.core.interface.serial import spi, noop
 from luma.core.render import canvas
 from luma.led_matrix.device import max7219
 from multiprocessing import Process
+import threading
 import os
 import tm1637
 tm = tm1637.TM1637(clk=3, dio=2)
@@ -34,8 +35,6 @@ def break_beam_callback(channel):
     if tpmap[channel]==target:
         print("hit")
         hitcount+=1
-        tm.numbers(00, hitcount)
-        # tm.show(str(hitcount))
         if p is not None:
             p.terminate()
 
@@ -83,13 +82,30 @@ for pin in BEAM_PINS:
     GPIO.add_event_detect(pin, GPIO.BOTH, callback=break_beam_callback)
 
 starttime = time.time()
-while  time.time()-starttime<60:
+timeup = False
+def score(tm, starttime):
+    global hitcount, p, timeup
+    while time.time()-starttime<30:
+        tm.numbers(int(time.time()-starttime), hitcount)
+        time.sleep(0.5)
+    if p is not None:
+        p.terminate()
+    timeup = True
+
+timer = threading.Thread(target=score, args=(tm, starttime))
+timer.start()
+
+while not timeup:
    target=random.choice(targetlist)
    p = Process(target=settarget, args=(target,device,))
    p.start()
    p.join()
 
+timer.join()
+
 for pin in BEAM_PINS:
     GPIO.remove_event_detect(pin)
 
 GPIO.cleanup()
+
+print("Game over")
