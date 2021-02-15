@@ -9,7 +9,7 @@ from luma.core.render import canvas
 from luma.core.legacy import show_message, text
 from luma.core.legacy.font import proportional, CP437_FONT, TINY_FONT, SINCLAIR_FONT, LCD_FONT
 from luma.led_matrix.device import max7219
-from multiprocessing import Process,Array,Value
+from multiprocessing import Process
 import threading
 import os,signal,sys
 import tm1637
@@ -20,14 +20,7 @@ tm = tm1637.TM1637(clk=3, dio=2)
 serial = spi(port=0, device=0, gpio=noop())
 device = max7219(serial,width=160,hight=8, block_orientation=-90)
 
-device.clear()
-
-BEAM_PINS = [24,23,22,27,17]
-
-timeupp = Value('i',0)
-hitcountp = Value('i',0)
-hitp = Value('i',0)
-
+BEAM_PINS = [17,27,22,23,24]
 target=None
 p=None
 targetlist=[1,2,3,4,5]
@@ -35,41 +28,39 @@ menuc=0
 timeup = False
 
 
-tpmap= {17:5,
-        27:4,
+tpmap= {17:1,
+        27:2,
         22:3,
-        23:2,
-        24:1}
+        23:4,
+        24:5}
 
 hitcount = 0
 
 def exit_handler():
     print("exit_handler")
-    GPIO.cleanup()
+    # GPIO.cleanup()
     device.cleanup()
     
 atexit.register(exit_handler)
 
 def signal_handler(sig,frame):
     print("signal_handler")
-    GPIO.cleanup()
-    device.cleanup()
+    # GPIO.cleanup()
+    # device.cleanup()
     if p is not None:
         p.terminate()
     timeup = True
     sys.exit(0)
 
 def randt_callback(channel):
-    global target,p,targetlist, hitcountp,hitp
+    global target,p,targetlist, hitcount
 
     print("callback:" + str(tpmap[channel]))
     if tpmap[channel]==target:
         print("hit")
-        hitcountp.value+=1
-        hitp.value=1
-        
-#       if p is not None:
-#           p.terminate()
+        hitcount+=1
+        if p is not None:
+            p.terminate()
 
 game_setup = [
                  {"label":"Rand E",
@@ -98,6 +89,26 @@ game_setup_path = []
 game_setup_options = None
 game_setup_event = None
 
+def setup_callback(channel):
+    global game_setup_path, game_setup_event, game_setup
+    
+    current_level = game_setup
+    for i in game_setup_path:
+        print(game_setup_path)
+        current_level = current_level[i]
+    game_setup_path.append(tpmap[channel] - 1)
+    if isinstance(current_level, list):
+        if isinstance(current_level[0], map):
+            game_setup_action = {"label": "NewLevel",
+                                 "options": current_level.options}
+        elif isinstance(current_level[0], int):
+            game_setup_action = {"label": "PickOption",
+                                 "options": current_level.options}
+        elif isinstance(current_level, int):
+            game_setup_action = {"label": "SetValue",
+                                 "options": current_level.options}
+
+
 def rande_callback(channel):
     global target,p,targetlist, hitcount
 
@@ -124,8 +135,8 @@ def menu_callback(channel):
     print(menuc)
 
 
-def settarget(target,d,hitp):
-
+def settarget(target,d):
+    global p
     if target == 1:
         p0=(0,0)
         p1=(31,7)
@@ -148,9 +159,6 @@ def settarget(target,d,hitp):
 
     time.sleep(0.5)
     for i in range(32):
-        if hitp.value == 1:
-            hitp.value = 0
-            break
         with canvas(d) as draw:
             draw.rectangle([p0, (p1[0]-i,p1[1])],fill="white")
         time.sleep(0.0625)
@@ -160,7 +168,8 @@ def settarget(target,d,hitp):
 
     print("target:"+str(target))
 
- 
+    #if p is not None:
+    #    p.terminate()
 
 menudict = None
 currentgame = None
@@ -288,20 +297,21 @@ def resetscore():
     tm.numbers(0,0)
 
 
-def score_randt(tm, starttime, gametime,timeupp,hitcountp):
+def score_randt(tm, starttime, gametime):
+    global hitcount, p, timeup
     while time.time()-starttime<gametime+1:
-        tm.numbers(int(gametime+1-(time.time()-starttime)), hitcountp.value)
+        tm.numbers(int(gametime+1-(time.time()-starttime)), hitcount)
         time.sleep(0.5)
-    timeupp.value = 1
-
+    timeup = True
+    if p is not None:
+        p.terminate()
 
 def randt_gamefunc():
     print("randt_gamefunc started")
-    global BEAM_PINS,target,p,targetlist, hitcount,timeupp,hitcounp,hitp
+    global BEAM_PINS,target,p,targetlist, hitcount,timeup
     #resetscore()
+    timeup=False
     gametime=10
-    timeupp.value=0
-
     for pin in BEAM_PINS:
         GPIO.remove_event_detect(pin)
 
@@ -312,16 +322,15 @@ def randt_gamefunc():
     starttime = time.time()
 
 
-    timer = Process(target=score_randt, args=(tm, starttime, gametime,timeupp,hitcountp))
+    timer = threading.Thread(target=score_randt, args=(tm, starttime, gametime))
     timer.start()
 
-    while not timeupp.value == 1:
+    while not timeup:
        temptargetlist = targetlist.copy()
        if target is not None:
            temptargetlist.remove(target)
        target=random.choice(temptargetlist)
-       hitp.value=0
-       p = Process(target=settarget, args=(target,device,hitp))
+       p = Process(target=settarget, args=(target,device,))
        p.start()
        p.join()
 
@@ -372,9 +381,6 @@ def rande_gamefunc():
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(pin, GPIO.BOTH, callback=rande_callback)
 
-    with canvas(device) as draw:
-        draw.rectangle([(0,0),(159,7)], outline="white", fill="white")
-        
     starttime = time.time()
 
 
