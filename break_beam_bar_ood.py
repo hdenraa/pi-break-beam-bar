@@ -2,79 +2,31 @@
 from menu import Menu, MenuItem
 from board import Board
 import time
+import atexit
 #import utime
 import cProfile
 import random
 import atexit
-
-from luma.core.interface.serial import spi, noop
-from luma.core.render import canvas
-from luma.core.legacy import show_message, text
-from luma.core.legacy.font import proportional, CP437_FONT, TINY_FONT, SINCLAIR_FONT, LCD_FONT
-from luma.led_matrix.device import max7219
+from ledarray import LedArray
 from multiprocessing import Process,Array,Value
 import os,signal,sys
 import tm1637
+
  #########################################################################################
+# pr = cProfile.Profile()
+# pr.enable()
+# def exit_handler():
+#     pr.disable()
+#     pr.print_stats(sort='time')
 
-class LedArray:
-    serial = spi(port=0, device=0, gpio=noop())
-    textList = ['']*5
 
-    def __init__(self, numberOfBlocks, font = proportional(TINY_FONT)):
-        self.device = max7219(self.serial,width=32*numberOfBlocks,hight=8, block_orientation=-90) #,blocks_arranged_in_reverse_order="inreverse")
-        self.textList = ['']*numberOfBlocks
-        self.font = font
+# def sigint_handler(sig, frame):
+#     exit_handler()
+#     os._exit(0)
 
-    def write(self, blockNum, itext):
-        self.textList[blockNum] = itext
-        with canvas(self.device) as draw:
-            for mitem in range(len(self.textList)):
-                text(draw, (32*mitem, 0), self.textList[mitem], fill="white", font=self.font)
 
-    def gameover(self):
-        print("in gameover")
-        show_message(self.device,"Game over",y_offset=0,fill="white",font=self.font)
+# signal.signal(signal.SIGINT, sigint_handler)
 
-    def clear(self):
-        self.device.clear()
-
-    def settarget(self,target,d,timeupp,hitp):
-        print("Target")
-        print(target)
-        if target == 1:
-            p0=(0,0)
-            p1=(31,7)
-        elif target==2:
-            p0=(32,0)
-            p1=(63,7)
-        elif target==3:
-            p0=(64,0)
-            p1=(95,7)
-        elif target==4:
-            p0=(96,0)
-            p1=(127,7)
-        elif target==5:
-            p0=(128,0)
-            p1=(159,7)
-
-        with canvas(self.device) as draw:
-            draw.rectangle([p0,p1], outline="white", fill="white")
-
-        time.sleep(0.5)
-        for i in range(32):
-            if hitp.value == 1 or timeupp.value == 1:
-                hitp.value = 0
-                break
-
-            with canvas(self.device) as draw:
-                draw.rectangle([p0, (p1[0]-i,p1[1])],fill="white")
-            time.sleep(0.0625)
-
-        with canvas(d) as draw:
-            draw.rectangle([p0, p1],fill="black")
-
-        print("target:"+str(target))
 
 class SevenSegment:
     def __init__(self):
@@ -107,7 +59,7 @@ class Game:
         self.hitcountp = Value('i',0)
         self.hitp = Value('i',0)
 
-        currentgame = RandT
+        self.currentgame = RandT
 
     def setgame(self,igame):
         print("game.setgame")
@@ -219,7 +171,7 @@ class RandE(Game):
 
     def setscore(self,starttime,gatetime,timeupp,hitcountp):
         while time.time()-starttime<gatetime+1:
-            Print("in setscore loop")
+            print("in setscore loop")
             self.sevenseg.write(int(gametime+1-(time.time()-starttime)), 5-hitcountp.value)
             time.sleep(0.5)
         timeupp.value = 1
@@ -284,9 +236,10 @@ randt = RandT(ledArray, pins, sevenSeg)
 
 rande = RandE(ledArray, pins, sevenSeg,game)
 
-game.setgame(randt)
+#game.setgame(randt)
 
 startMenu = Menu(ledArray, pins, [MenuItem("Games", noitem),MenuItem("", noitem),MenuItem(game.currentgame.name, noitem),MenuItem("", noitem),MenuItem("Start", game.currentgame.startgame)])
+
 
 gameMenu = Menu(ledArray, pins, [MenuItem("RandT", randt.setgame),MenuItem("RandE", rande.setgame),MenuItem("", noitem),MenuItem("", noitem),MenuItem("", noitem)])
 
@@ -302,5 +255,4 @@ startMenu.show(0)
 
 
 print("Start")
-while True:
-    time.sleep(5)
+signal.pause()
