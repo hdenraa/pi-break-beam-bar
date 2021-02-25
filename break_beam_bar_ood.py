@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 #import utime
+import cProfile
 import random
 import atexit
 import RPi.GPIO as GPIO
@@ -28,6 +29,10 @@ class LedArray:
         with canvas(self.device) as draw:
             for mitem in range(len(self.textList)):
                 text(draw, (32*mitem, 0), self.textList[mitem], fill="white", font=self.font)
+
+    def gameover(self):
+        print("in gameover")
+        show_message(self.device,"Game over",y_offset=0,fill="white",font=self.font)
 
     def clear(self):
         self.device.clear()
@@ -117,6 +122,9 @@ class Menu:
         for i in items:
             i.menu = self
 
+    def setitem(self,i,item):
+        self.items[i]=item
+
     def show(self, channel):
         for p in self.pins:
             p.deregisterHandler()
@@ -160,11 +168,13 @@ class Game:
         currentgame = RandT
 
     def setgame(self,igame):
+        print("game.setgame")
+        print(igame)
         self.currentgame = igame
 
 
-    def resetscore():
-        sevenseg.numbers(0,0)
+    def resetscore(self):
+        self.sevenseg.write(0,0)
 
     def setscore(self,starttime, gametime,timeupp,hitcountp):
         while time.time()-starttime<gametime+1:
@@ -199,7 +209,12 @@ class Game:
             self.p.join()
 
     def gameover(self):
-        show_message(self.display.device,"Game over",y_offset=0,fill=None,font=self.device.font)
+        self.display.gameover()
+        self.resetscore()
+        self.timep.value = 0
+        self.timeupp.value = 0
+        self.hitcountp.value = 0
+        self.hitp.value = 0
 
     def startgame(self,x):
         pass
@@ -208,7 +223,11 @@ class Game:
 class RandT(Game):
     name="RandT"
     def setgame(self,x):
-        self.setgame(self)
+        print("randt.setgame")
+        startMenu.setitem(4,MenuItem("Start",self.startgame))
+        startMenu.setitem(2,MenuItem(self.name,startMenu.show))
+        #self.game.setgame(self)
+        #print(self)
         startMenu.show(0)
 
     def startgame(self,x):
@@ -216,6 +235,7 @@ class RandT(Game):
 
         gametime=10
         self.timeupp.value=0
+        self.hitcountp.value=0
         self.p=None
 
 
@@ -227,6 +247,58 @@ class RandT(Game):
 
 
         timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
+        timer.start()
+
+        self.mainloop()
+
+        timer.join()
+
+        self.gameover()
+
+        time.sleep(5)
+
+        startMenu.show(0)
+
+class RandE(Game):
+    name="RandE"
+
+    def __init__(self,display, pins, sevenseg, game):
+        self.game = game
+        super().__init__(display, pins, sevenseg)
+
+    def setgame(self,x):
+        print("rande.setgame")
+        #self.setgame(self)
+        startMenu.setitem(4,MenuItem("Start",self.startgame))
+        startMenu.setitem(2,MenuItem(self.name,startMenu.show))
+        #self.game.setgame(self)
+        #print(self)
+        startMenu.show(0)
+
+    def setscore(self,starttime,gatetime,timeupp,hitcountp):
+        while time.time()-starttime<gatetime+1:
+            Print("in setscore loop")
+            self.sevenseg.write(int(gametime+1-(time.time()-starttime)), 5-hitcountp.value)
+            time.sleep(0.5)
+        timeupp.value = 1
+
+    def startgame(self,x):
+        print("RandE started")
+
+        gatetime=10
+        gatepoints=5
+        self.timeupp.value=0
+        self.p=None
+
+
+        for pin in self.pins:
+            pin.deregisterHandler()
+            pin.registerHandler(self.game_callback)
+
+        starttime = time.time()
+
+
+        timer = Process(target=self.setscore, args=(starttime, gatetime,self.timeupp,self.hitcountp))
         timer.start()
 
         self.mainloop()
@@ -268,11 +340,15 @@ game = Game(ledArray, pins, sevenSeg)
 
 randt = RandT(ledArray, pins, sevenSeg)
 
+rande = RandE(ledArray, pins, sevenSeg,game)
+
 game.setgame(randt)
 
-gameMenu = Menu(ledArray, pins, [MenuItem("RandT", randt.setgame),MenuItem("Game 2", noitem),MenuItem("", noitem),MenuItem("", noitem),MenuItem("", noitem)])
+startMenu = Menu(ledArray, pins, [MenuItem("Games", noitem),MenuItem("", noitem),MenuItem(game.currentgame.name, noitem),MenuItem("", noitem),MenuItem("Start", game.currentgame.startgame)])
 
-startMenu = Menu(ledArray, pins, [MenuItem("Games", gameMenu.show),MenuItem("", noitem),MenuItem(game.currentgame.name, noitem),MenuItem("", noitem),MenuItem("Start", game.currentgame.startgame)])
+gameMenu = Menu(ledArray, pins, [MenuItem("RandT", randt.setgame),MenuItem("RandE", rande.setgame),MenuItem("", noitem),MenuItem("", noitem),MenuItem("", noitem)])
+
+startMenu.setitem(0,MenuItem("Games", gameMenu.show))
 
 startMenu.show(0)
 
@@ -280,6 +356,8 @@ startMenu.show(0)
 # ~ ledArray.write(2, "Hej")
 # ~ ledArray.write(3, "med")
 # ~ ledArray.write(4, "Hej")
+
+
 
 print("Start")
 while True:
