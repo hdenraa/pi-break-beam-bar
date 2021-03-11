@@ -5,15 +5,14 @@ class Pin:
         self.pinNum = pinNum
         self.hasCallback = False
         GPIO.setup(self.pinNum, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(self.pinNum, GPIO.FALLING, callback=self.handler)
+        
 
     def registerHandler(self, handler):
-        self.deregisterHandler()
-        GPIO.add_event_detect(self.pinNum, GPIO.FALLING, callback=handler)
-        self.hasCallback = True
-
-    def deregisterHandler(self):
-        if self.hasCallback:
-            GPIO.remove_event_detect(self.pinNum)
+        self.callback = handler
+            
+    def handler(self,channel):
+        self.callback(channel)
 
 class Board:
     def __init__(self):

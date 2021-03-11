@@ -10,8 +10,6 @@ class Menu:
         self.items[i]=item
 
     def show(self, channel):
-        for p in self.pins:
-            p.deregisterHandler()
         for i in range(len(self.items)):
             self.pins[i].registerHandler(self.items[i].fn)
         for i in range(len(self.items)):
@@ -19,7 +17,7 @@ class Menu:
 
 class MenuItem:
     def __init__(self, label, fn):
-        self.fn = lambda c: self.execute(fn)
+        self.fn = lambda c: self.execute(fn(0))
         self.label = label
 
     def execute(self,fn):

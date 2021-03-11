@@ -103,7 +103,7 @@ class Game:
             self.p.join()
 
     def gameover(self):
-        self.display.gameover()
+        #self.display.gameover()
         self.resetscore()
         self.timep.value = 0
         self.timeupp.value = 0
@@ -134,7 +134,6 @@ class RandT(Game):
 
 
         for pin in self.pins:
-            pin.deregisterHandler()
             pin.registerHandler(self.game_callback)
 
         starttime = time.time()
@@ -155,10 +154,6 @@ class RandT(Game):
 
 class RandE(Game):
     name="RandE"
-
-    def __init__(self,display, pins, sevenseg, game):
-        self.game = game
-        super().__init__(display, pins, sevenseg)
 
     def setgame(self,x):
         print("rande.setgame")
@@ -186,7 +181,6 @@ class RandE(Game):
 
 
         for pin in self.pins:
-            pin.deregisterHandler()
             pin.registerHandler(self.game_callback)
 
         starttime = time.time()
@@ -236,7 +230,7 @@ randt = RandT(ledArray, pins, sevenSeg)
 
 rande = RandE(ledArray, pins, sevenSeg,game)
 
-#game.setgame(randt)
+game.setgame(randt)
 
 startMenu = Menu(ledArray, pins, [MenuItem("Games", noitem),MenuItem("", noitem),MenuItem(game.currentgame.name, noitem),MenuItem("", noitem),MenuItem("Start", game.currentgame.startgame)])
 
