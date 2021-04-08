@@ -1,4 +1,6 @@
 import RPi.GPIO as GPIO
+from multiprocessing import Process
+
 class Pin:
     pinNum = None
     def __init__(self,pinNum):

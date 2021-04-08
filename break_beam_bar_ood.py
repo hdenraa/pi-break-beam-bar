@@ -132,34 +132,34 @@ class RandT(Game):
     def startgame(self,x):
         print("RandT started")
 
-        gametime=10
-        self.timeupp.value=0
-        self.hitcountp.value=0
-        self.p=None
-        
-        while True:
-            time.sleep(0.1)
-
         print(self.pins)
         for i in range(len(self.pins)):
             print("register fn randt")
             self.pins[i].registerHandler(self.game_callback)
+        game=Process(target=self.startgameforreal,args=(x,))
+        game.start()
 
-        # starttime = time.time()
-        # print("Test pins")
+    def startgameforreal(self,x):
+        gametime=10
+        self.timeupp.value=0
+        self.hitcountp.value=0
+        self.p=None
 
-        # timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
-        # timer.start()
+        starttime = time.time()
+        print("Test pins")
 
-        # self.mainloop()
+        timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
+        timer.start()
 
-        # timer.join()
+        self.mainloop()
 
-        # self.gameover()
+        timer.join()
 
-        # time.sleep(10)
+        self.gameover()
 
-        # startMenu.show(0)
+        time.sleep(10)
+
+        startMenu.show(0)
 
 class RandE(Game):
     name="RandE"
