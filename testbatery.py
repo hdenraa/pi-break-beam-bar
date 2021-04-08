@@ -13,7 +13,7 @@ tm = tm1637.TM1637(clk=3, dio=2)
 bf = open("batterytime.txt","w")
 serial = spi(port=0, device=0, gpio=noop())
 device = max7219(serial,width=64,hight=8, block_orientation=-90)
-BEAM_PINS = [17,27,22,23,24]
+BEAM_PINS = [18,27,22,23,24]
 
 def break_beam_callback(channel):
     global target,p,targetlist, hitcount

@@ -11,6 +11,7 @@ from ledarray import LedArray
 from multiprocessing import Process,Array,Value
 import os,signal,sys
 import tm1637
+from test import scrolling as test_scrolling
 
  #########################################################################################
 # pr = cProfile.Profile()
@@ -77,11 +78,12 @@ class Game:
         timeupp.value = 1
 
     def game_callback(self,channel):
-        tpmap= {17:5,
+        tpmap= {18:5,
                 27:4,
                 22:3,
                 23:2,
                 24:1}
+        print("Gamecallback")
         if tpmap[channel]==self.target:
             print("hit")
             self.hitcountp.value+=1
@@ -111,6 +113,7 @@ class Game:
         self.hitp.value = 0
 
     def startgame(self,x):
+        print("startgame")
         pass
 
 
@@ -118,11 +121,13 @@ class RandT(Game):
     name="RandT"
     def setgame(self,x):
         print("randt.setgame")
+
         startMenu.setitem(4,MenuItem("Start",self.startgame))
-        startMenu.setitem(2,MenuItem(self.name,startMenu.show))
+        startMenu.setitem(2,MenuItem(self.name,noitem))
         #self.game.setgame(self)
         #print(self)
         startMenu.show(0)
+
 
     def startgame(self,x):
         print("RandT started")
@@ -131,29 +136,37 @@ class RandT(Game):
         self.timeupp.value=0
         self.hitcountp.value=0
         self.p=None
+        
+        while True:
+            time.sleep(0.1)
 
+        print(self.pins)
+        for i in range(len(self.pins)):
+            print("register fn randt")
+            self.pins[i].registerHandler(self.game_callback)
 
-        for pin in self.pins:
-            pin.registerHandler(self.game_callback)
+        # starttime = time.time()
+        # print("Test pins")
 
-        starttime = time.time()
+        # timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
+        # timer.start()
 
+        # self.mainloop()
 
-        timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
-        timer.start()
+        # timer.join()
 
-        self.mainloop()
+        # self.gameover()
 
-        timer.join()
+        # time.sleep(10)
 
-        self.gameover()
-
-        time.sleep(5)
-
-        startMenu.show(0)
+        # startMenu.show(0)
 
 class RandE(Game):
     name="RandE"
+
+    def __init__(self,display, pins, sevenseg, game):
+        self.game = game
+        super().__init__(display, pins, sevenseg)
 
     def setgame(self,x):
         print("rande.setgame")
@@ -199,17 +212,18 @@ class RandE(Game):
 
         startMenu.show(0)
 
+
 board = Board()
 
 # ~ breakBeam1 = board.getPin(24)
 # ~ breakBeam2 = board.getPin(23)
 
 pins = [
-    board.getPin(24),
+    board.getPin(24), # games
     board.getPin(23),
     board.getPin(22),
-    board.getPin(27),
-    board.getPin(17)
+    board.getPin(27), # test
+    board.getPin(18) # start
 ]
 
 
@@ -230,14 +244,23 @@ randt = RandT(ledArray, pins, sevenSeg)
 
 rande = RandE(ledArray, pins, sevenSeg,game)
 
-game.setgame(randt)
-
-startMenu = Menu(ledArray, pins, [MenuItem("Games", noitem),MenuItem("", noitem),MenuItem(game.currentgame.name, noitem),MenuItem("", noitem),MenuItem("Start", game.currentgame.startgame)])
 
 
-gameMenu = Menu(ledArray, pins, [MenuItem("RandT", randt.setgame),MenuItem("RandE", rande.setgame),MenuItem("", noitem),MenuItem("", noitem),MenuItem("", noitem)])
 
-startMenu.setitem(0,MenuItem("Games", gameMenu.show))
+def test(_):
+    test_scrolling(0)
+
+startMenu = Menu(ledArray, pins, [MenuItem("Games", noitem),
+                                  MenuItem("", noitem),
+                                  MenuItem(game.currentgame.name, noitem),
+                                  MenuItem("Test", test),
+                                  MenuItem("Start", game.currentgame.startgame)])
+
+randt.setgame(randt)
+
+gameMenu = Menu(ledArray, pins, [MenuItem("", noitem),MenuItem("RandT", randt.setgame),MenuItem("RandE", rande.setgame), MenuItem("", noitem), MenuItem("", noitem)])
+
+startMenu.setitem(1, MenuItem("Games", gameMenu.show))
 
 startMenu.show(0)
 
@@ -248,5 +271,7 @@ startMenu.show(0)
 
 
 
-print("Start")
-signal.pause()
+print("Before signal.pause()")
+while True:
+    a=1
+    time.sleep(0.2)

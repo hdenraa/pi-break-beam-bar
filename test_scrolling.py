@@ -22,4 +22,4 @@ device = max7219(serial,width=160,hight=8, block_orientation=-90)
 
 device.clear()
 
-show_message(device,"Game Over",fill="white")
+show_message(device,"Test Test",fill="white")

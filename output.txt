@@ -1,0 +1,31 @@
+<ledarray.LedArray object at 0xb6675990>
+<ledarray.LedArray object at 0xb6675990>
+<ledarray.LedArray object at 0xb6675990>
+game.setgame
+<__main__.RandT object at 0xb32ef770>
+icallback
+<function MenuItem.__init__.<locals>.<lambda> at 0xb32f6930>
+Self
+<board.Pin object at 0xb563fc70>
+1
+icallback
+<function MenuItem.__init__.<locals>.<lambda> at 0xb32f6c00>
+Self
+<board.Pin object at 0xb563fc70>
+1
+icallback
+<function MenuItem.__init__.<locals>.<lambda> at 0xb32f69c0>
+Self
+<board.Pin object at 0xb563f3d0>
+1
+icallback
+<function MenuItem.__init__.<locals>.<lambda> at 0xb32f6a08>
+Self
+<board.Pin object at 0xb563fe10>
+1
+icallback
+<function MenuItem.__init__.<locals>.<lambda> at 0xb32f6a50>
+Self
+<board.Pin object at 0xb563fe10>
+1
+Before signal.pause()

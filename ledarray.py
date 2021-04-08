@@ -22,7 +22,7 @@ class LedArray:
 
     def clear(self):
         self.device.clear()
-        
+
     def settarget(self,target,d,timeupp,hitp):
 
         if target == 1:

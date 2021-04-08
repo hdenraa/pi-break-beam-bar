@@ -17,9 +17,5 @@ class Menu:
 
 class MenuItem:
     def __init__(self, label, fn):
-        self.fn = lambda c: self.execute(fn(0))
+        self.fn = lambda c: fn(c)
         self.label = label
-
-    def execute(self,fn):
-        fn(0)
-        #self.menu.show(0)
