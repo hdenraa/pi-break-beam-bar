@@ -14,10 +14,17 @@ class Pin:
     def registerHandler(self, icallback):
         print("icallback")
         print(icallback)
+        print(self.pinNum)
         print("Self")
         print(self)
         self.inputcallback = icallback
         print(GPIO.gpio_function(self.pinNum))
+        
+    def reRegisterHandler(self, icallback):
+        GPIO.remove_event_detect(self.pinNum)
+        GPIO.setup(self.pinNum, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(self.pinNum, GPIO.FALLING, callback=icallback)
+
 
     def pincallback(self,channel):
         print("pin.pincallcack")

@@ -59,6 +59,7 @@ class Game:
         self.timeupp = Value('i',0)
         self.hitcountp = Value('i',0)
         self.hitp = Value('i',0)
+        self.targetp = Value('i',0)
 
         self.currentgame = RandT
 
@@ -82,25 +83,32 @@ class Game:
                 27:4,
                 22:3,
                 23:2,
-                24:1}
+                24:1
+                }
         print("Gamecallback")
-        if tpmap[channel]==self.target:
+        print(self.target)
+        print(self.hitcountp.value)
+        print(tpmap[channel])
+        if tpmap[channel]==self.targetp.value:
             print("hit")
             self.hitcountp.value+=1
             self.hitp.value=1
 
-    def choosetarget(self):
+    def choosetarget(self,itargetp):
         targetlist = [1,2,3,4,5]
         temptargetlist = targetlist.copy()
         if self.target is not None:
             temptargetlist.remove(self.target)
-        self.target=random.choice(temptargetlist)
+        itargetp.value=random.choice(temptargetlist)
+        self.target=itargetp.value
+        print("choosetarget")
+        print(self.target)
 
-    def mainloop(self):
+    def mainloop(self,itargetp):
         while not self.timeupp.value == 1:
-            self.choosetarget()
+            self.choosetarget(itargetp)
             self.hitp.value=0
-            self.p = Process(target=self.display.settarget, args=(self.target,self.display.device,self.timeupp,self.hitp))
+            self.p = Process(target=self.display.settarget, args=(itargetp.value,self.display.device,self.timeupp,self.hitp))
             self.p.start()
             self.p.join()
 
@@ -130,36 +138,43 @@ class RandT(Game):
 
 
     def startgame(self,x):
+        global gamep
         print("RandT started")
-
-        print(self.pins)
+        
         for i in range(len(self.pins)):
             print("register fn randt")
             self.pins[i].registerHandler(self.game_callback)
-        game=Process(target=self.startgameforreal,args=(x,))
-        game.start()
 
-    def startgameforreal(self,x):
+        gamep = Process(target=self.startgameforreal,args=(self.pins,self.game_callback,self.targetp))
+        gamep.start()
+
+    def startgameforreal(self,ipins,igame_callback,itargetp):
         gametime=10
         self.timeupp.value=0
         self.hitcountp.value=0
         self.p=None
-
         starttime = time.time()
-        print("Test pins")
+        
+        # ~ for i in range(len(ipins)):
+            # ~ print("register fn randt")
+            # ~ self.pins[i].reRegisterHandler(igame_callback)
 
         timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
         timer.start()
 
-        self.mainloop()
+        self.mainloop(itargetp)
 
         timer.join()
 
         self.gameover()
 
         time.sleep(10)
+        
+        # ~ for i in range(len(ipins)):
+            # ~ print("reregister menu")
+            # ~ self.pins[i].reRegisterHandler(self.pins[i].pincallback)
 
-        startMenu.show(0)
+
 
 class RandE(Game):
     name="RandE"
@@ -231,6 +246,8 @@ pins = [
 # ~ breakBeam1.registerHandler(temp_callback)
 # ~ breakBeam2.registerHandler(temp_callback2)
 
+gamep = None
+
 ledArray = LedArray(5)
 
 sevenSeg = SevenSegment()
@@ -249,6 +266,8 @@ rande = RandE(ledArray, pins, sevenSeg,game)
 
 def test(_):
     test_scrolling(0)
+    
+
 
 startMenu = Menu(ledArray, pins, [MenuItem("Games", noitem),
                                   MenuItem("", noitem),
@@ -273,5 +292,8 @@ startMenu.show(0)
 
 print("Before signal.pause()")
 while True:
-    a=1
-    time.sleep(0.2)
+    time.sleep(0.5)
+    if gamep and gamep.is_alive():
+        gamep.join()
+        gamep.terminate()
+        startMenu.show(0)
