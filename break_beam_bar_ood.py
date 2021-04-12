@@ -168,7 +168,6 @@ class RandT(Game):
 
         self.gameover()
 
-        time.sleep(10)
         
         # ~ for i in range(len(ipins)):
             # ~ print("reregister menu")
