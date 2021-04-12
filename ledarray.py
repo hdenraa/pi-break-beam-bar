@@ -19,6 +19,9 @@ class LedArray:
         with canvas(self.device) as draw:
             for mitem in range(len(self.textList)):
                 text(draw, (32*mitem, 0), self.textList[mitem], fill="white", font=self.font)
+                
+    def scrolltext(self,itext):
+        show_message(self.device,itext,fill="white")
 
     def clear(self):
         self.device.clear()

@@ -113,7 +113,7 @@ class Game:
             self.p.join()
 
     def gameover(self):
-        #self.display.gameover()
+        self.display.scrolltext("Game over")
         self.resetscore()
         self.timep.value = 0
         self.timeupp.value = 0
@@ -145,19 +145,15 @@ class RandT(Game):
             print("register fn randt")
             self.pins[i].registerHandler(self.game_callback)
 
-        gamep = Process(target=self.startgameforreal,args=(self.pins,self.game_callback,self.targetp))
+        gamep = Process(target=self.startgameforreal,args=(self.targetp,))
         gamep.start()
 
-    def startgameforreal(self,ipins,igame_callback,itargetp):
+    def startgameforreal(self, itargetp):
         gametime=10
         self.timeupp.value=0
         self.hitcountp.value=0
         self.p=None
         starttime = time.time()
-        
-        # ~ for i in range(len(ipins)):
-            # ~ print("register fn randt")
-            # ~ self.pins[i].reRegisterHandler(igame_callback)
 
         timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp))
         timer.start()
@@ -168,10 +164,6 @@ class RandT(Game):
 
         self.gameover()
 
-        
-        # ~ for i in range(len(ipins)):
-            # ~ print("reregister menu")
-            # ~ self.pins[i].reRegisterHandler(self.pins[i].pincallback)
 
 
 
