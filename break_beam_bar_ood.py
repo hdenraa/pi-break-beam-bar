@@ -183,41 +183,53 @@ class RandE(Game):
         #print(self)
         startMenu.show(0)
 
-    def setscore(self,starttime,gatetime,timeupp,hitcountp):
-        while time.time()-starttime<gatetime+1:
+    def setscore(self,starttime,gatetime,timeupp,hitcountp,targetcount,gametimep):
+        starttargetcount=targetcount
+        targettime=starttime
+        targetinc=1
+        while time.time()-targettime<gatetime+1:
             print("in setscore loop")
-            self.sevenseg.write(int(gametime+1-(time.time()-starttime)), 5-hitcountp.value)
+            self.sevenseg.write(int(gatetime+1-(time.time()-starttime)), targetcount-hitcountp.value)
             time.sleep(0.5)
+            if hitcountp.value >= targetcount:
+                targetcount += starttargetcount + targetinc
+                targettime=time.time()
+                targetinc+=1
+                gametimep.value=starttime-targettime
         timeupp.value = 1
-
+    
     def startgame(self,x):
+        global gamep
         print("RandE started")
+        
+        for i in range(len(self.pins)):
+            print("register fn randE")
+            self.pins[i].registerHandler(self.game_callback)
 
-        gatetime=10
-        gatepoints=5
+        gamep = Process(target=self.startgameforreal,args=(self.targetp,))
+        gamep.start()
+
+    def startgameforreal(self, itargetp):
+        gametime=10
+        self.timeupp.value=0
+        self.hitcountp.value=0
+        self.p=None
+        starttime = time.time()
+        gatetime=20
+        gatepoints=2
         self.timeupp.value=0
         self.p=None
 
-
-        for pin in self.pins:
-            pin.registerHandler(self.game_callback)
-
-        starttime = time.time()
-
-
-        timer = Process(target=self.setscore, args=(starttime, gatetime,self.timeupp,self.hitcountp))
+        timer = Process(target=self.setscore, args=(starttime, gametime,self.timeupp,self.hitcountp,gatepoints))
         timer.start()
 
-        self.mainloop()
+        self.mainloop(itargetp)
 
         timer.join()
 
         self.gameover()
-
-        time.sleep(5)
-
-        startMenu.show(0)
-
+        
+ 
 
 board = Board()
 
