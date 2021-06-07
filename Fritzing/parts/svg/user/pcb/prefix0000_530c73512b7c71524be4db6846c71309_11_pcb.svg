@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!-- Created with Fritzing (http://www.fritzing.org/) -->
+<svg xmlns="http://www.w3.org/2000/svg"  height="0.42in" viewBox="0 0 420 420" width="0.42in" x="0in" baseProfile="tiny" y="0in" xmlns:svg="http://www.w3.org/2000/svg" version="1.2">
+    <desc>
+        <referenceFile>dip_8_300mil_pcb.svg</referenceFile>
+    </desc>
+    <g id="silkscreen">
+        <line stroke="white" stroke-width="10" x2="10" y1="10" x1="10" y2="410"/>
+        <line stroke="white" stroke-width="10" x2="410" y1="410" x1="10" y2="410"/>
+        <line stroke="white" stroke-width="10" x2="410" y1="410" x1="410" y2="10"/>
+        <line stroke="white" stroke-width="10" x2="160" y1="10" x1="10" y2="10"/>
+        <line stroke="white" stroke-width="10" x2="410" y1="10" x1="260" y2="10"/>
+    </g>
+    <g id="copper1">
+        <g>
+            <g>
+                <rect stroke="rgb(255, 191, 0)" height="55" stroke-width="20" id="square" width="55" x="32.5" y="32.5" fill="none"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector0pin" cy="60" r="27.5" fill="none" cx="60"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector7pin" cy="60" r="27.5" fill="none" cx="360"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector1pin" cy="160" r="27.5" fill="none" cx="60"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector6pin" cy="160" r="27.5" fill="none" cx="360"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector2pin" cy="260" r="27.5" fill="none" cx="60"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector5pin" cy="260" r="27.5" fill="none" cx="360"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector3pin" cy="360" r="27.5" fill="none" cx="60"/>
+                <circle stroke="rgb(255, 191, 0)" stroke-width="20" id="connector4pin" cy="360" r="27.5" fill="none" cx="360"/>
+            </g>
+        </g>
+    </g>
+</svg>
